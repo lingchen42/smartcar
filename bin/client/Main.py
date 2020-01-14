@@ -15,11 +15,11 @@ from Command import COMMAND as cmd
 from Thread import *
 from Client_Ui import Ui_Client
 from Video import *
-from PyQt4.QtCore import *
-from PyQt4 import  QtGui, QtCore
-from PyQt4.QtGui import *
-from PyQt4.QtCore import pyqtSignature
-from PyQt4.QtGui import (QApplication, QMainWindow, QGraphicsScene)
+from PyQt5.QtCore import *
+from PyQt5 import  QtGui, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import pyqtSignature
+from PyQt5.QtGui import (QApplication, QMainWindow, QGraphicsScene)
    
 class mywindow(QMainWindow,Ui_Client):
     def __init__(self):
