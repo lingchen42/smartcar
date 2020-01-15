@@ -17,11 +17,11 @@ from Client_Ui import Ui_Client
 from Video import *
 from PyQt5.QtCore import *
 from PyQt5 import  QtGui, QtCore
-from PyQt5.QtGui import *
-from PyQt5.QtCore import pyqtSignature
-from PyQt5.QtGui import (QApplication, QMainWindow, QGraphicsScene)
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import pyqtSignal
+from cv2 import VideoWriter_fourcc
    
-class mywindow(QMainWindow,Ui_Client):
+class mywindow(QMainWindow, Ui_Client):
     def __init__(self):
         global timer
         super(mywindow,self).__init__()
@@ -73,7 +73,7 @@ class mywindow(QMainWindow,Ui_Client):
         self.HSlider_FineServo2.setValue(0)
         self.HSlider_FineServo2.valueChanged.connect(self.Fine_Tune_Up_Down)
         
-        self.VSlider_Servo2.setMinimum(80)
+        self.VSlider_Servo2.setMinimum(0)
         self.VSlider_Servo2.setMaximum(180)
         self.VSlider_Servo2.setSingleStep(1)
         self.VSlider_Servo2.setValue(self.servo2)
@@ -130,6 +130,8 @@ class mywindow(QMainWindow,Ui_Client):
         self.Btn_Turn_Right.released.connect(self.on_btn_Stop)
 
         self.Btn_Video.clicked.connect(self.on_btn_video)
+        # for creating video
+        self.video_frames = []
 
         self.Btn_Up.clicked.connect(self.on_btn_Up)
         self.Btn_Left.clicked.connect(self.on_btn_Left)
@@ -148,7 +150,9 @@ class mywindow(QMainWindow,Ui_Client):
         self.Window_Min.clicked.connect(self.windowMinimumed)
         self.Window_Close.clicked.connect(self.close)
         timer = QTimer(self)
-        self.connect(timer, SIGNAL("timeout()"), self.time)
+        #self.timer.timeout.connect(timer, SIGNAL("timeout()"), self.time)
+        timer.timeout.connect(self.time)
+
     def mousePressEvent(self, event):
         if event.button()==Qt.LeftButton:
             self.m_drag=True
@@ -302,19 +306,19 @@ class mywindow(QMainWindow,Ui_Client):
 
         
     def on_btn_ForWard(self):
-        ForWard=self.intervalChar+str(1500)+self.intervalChar+str(1500)+self.intervalChar+str(1500)+self.intervalChar+str(1500)+self.endChar
+        ForWard=self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.endChar
         self.TCP.sendData(cmd.CMD_MOTOR+ForWard)
 
     def on_btn_Turn_Left(self):
-        Turn_Left=self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.intervalChar+str(1500)+self.intervalChar+str(1500)+self.endChar
+        Turn_Left=self.intervalChar+str(1500)+self.intervalChar+str(1500)+self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.endChar
         self.TCP.sendData(cmd.CMD_MOTOR+ Turn_Left)
 
     def on_btn_BackWard(self):
-        BackWard=self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.endChar
+        BackWard=self.intervalChar+str(1500)+self.intervalChar+str(1500)+self.intervalChar+str(1500)+self.intervalChar+str(1500)+self.endChar
         self.TCP.sendData(cmd.CMD_MOTOR+BackWard)
 
     def on_btn_Turn_Right(self):
-        Turn_Right=self.intervalChar+str(1500)+self.intervalChar+str(1500)+self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.endChar
+        Turn_Right=self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.intervalChar+str(1500)+self.intervalChar+str(1500)+self.endChar
         self.TCP.sendData(cmd.CMD_MOTOR+Turn_Right)
 
     def on_btn_Stop(self):
@@ -327,33 +331,39 @@ class mywindow(QMainWindow,Ui_Client):
             self.Btn_Video.setText('Close Video')
         elif self.Btn_Video.text()=='Close Video':
             timer.stop()
+            self.save_to_video('../../data/video.mp4')
             self.Btn_Video.setText('Open Video')
-    def on_btn_Up(self):
-        self.servo2=self.servo2+10
-        if self.servo2>=180:
-            self.servo2=180
-        self.VSlider_Servo2.setValue(self.servo2)
         
     def on_btn_Left(self):
-        self.servo1=self.servo1-10
-        if self.servo1<=0:
-            self.servo1=0
-        self.HSlider_Servo1.setValue(self.servo1)
-    def on_btn_Down(self):
-        self.servo2=self.servo2-10
-        if self.servo2<=80:
-            self.servo2=80
-        self.VSlider_Servo2.setValue(self.servo2)
-    def on_btn_Right(self):
         self.servo1=self.servo1+10
         if self.servo1>=180:
             self.servo1=180
         self.HSlider_Servo1.setValue(self.servo1)
+
+    def on_btn_Right(self):
+        self.servo1=self.servo1-10
+        if self.servo1<=0:
+            self.servo1=0
+        self.HSlider_Servo1.setValue(self.servo1)
+
+    def on_btn_Up(self):
+        self.servo2=self.servo2-10
+        if self.servo2<=0:
+            self.servo2=0
+        self.VSlider_Servo2.setValue(self.servo2)
+
+    def on_btn_Down(self):
+        self.servo2=self.servo2+10
+        if self.servo2>=100:
+            self.servo2=100
+        self.VSlider_Servo2.setValue(self.servo2)
+
     def on_btn_Home(self):
         self.servo1=90
         self.servo2=90
         self.HSlider_Servo1.setValue(self.servo1)
         self.VSlider_Servo2.setValue(self.servo2)
+
     def on_btn_Buzzer(self):
         if self.Btn_Buzzer.text()=='Buzzer':
             self.TCP.sendData(cmd.CMD_BUZZER+self.intervalChar+'1'+self.endChar)
@@ -361,6 +371,7 @@ class mywindow(QMainWindow,Ui_Client):
         else:
             self.TCP.sendData(cmd.CMD_BUZZER+self.intervalChar+'0'+self.endChar)
             self.Btn_Buzzer.setText('Buzzer')
+
     def on_btn_Ultrasonic(self):
         if self.Ultrasonic.text()=="Ultrasonic":
             self.TCP.sendData(cmd.CMD_SONIC+self.intervalChar+'1'+self.endChar)
@@ -380,6 +391,7 @@ class mywindow(QMainWindow,Ui_Client):
         self.servo1=self.HSlider_Servo1.value()
         self.TCP.sendData(cmd.CMD_SERVO+self.intervalChar+'0'+self.intervalChar+str(self.servo1)+self.endChar)
         self.label_Servo1.setText("%d"%self.servo1)
+
     def Change_Up_Down(self):#Up or Down
         self.servo2=self.VSlider_Servo2.value()
         self.TCP.sendData(cmd.CMD_SERVO+self.intervalChar+'1'+self.intervalChar+str(self.servo2)+self.endChar)
@@ -512,17 +524,20 @@ class mywindow(QMainWindow,Ui_Client):
             self.h=self.IP.text()
             self.TCP.StartTcpClient(self.h,)
             try:
-                self.streaming=Thread(target=self.TCP.streaming,args=(self.h,))
+                self.streaming=Thread(target=self.TCP.streaming, args=(self.h, ))
                 self.streaming.start()
             except:
                 print('video error')
+
             try:
                 self.recv=Thread(target=self.recvmassage)
                 self.recv.start()
             except:
                 print('recv error')
+
             self.Btn_Connect.setText( "Disconnect")
             print('Server address:'+str(self.h)+'\n')
+
         elif self.Btn_Connect.text()=="Disconnect":
             self.Btn_Connect.setText( "Connect")
             try:
@@ -544,8 +559,12 @@ class mywindow(QMainWindow,Ui_Client):
         self.TCP.StopTcpcClient()
         try:
             os.remove("video.jpg")
-        except:
+
+        except Exception as e:
+            print('Error type is:', e.__class__.__name__)
+            print(e)
             pass
+
         QCoreApplication.instance().quit()
         os._exit(0)
 
@@ -556,6 +575,7 @@ class mywindow(QMainWindow,Ui_Client):
                 time.sleep(60)
             except:
                 break
+
     def recvmassage(self):
             self.TCP.socket1_connect(self.h)
             self.power=Thread(target=self.Power)
@@ -564,7 +584,7 @@ class mywindow(QMainWindow,Ui_Client):
             while True:
                 Alldata=restCmd+str(self.TCP.recvData())
                 restCmd=""
-                print(Alldata)
+                #print(Alldata)
                 if Alldata=="":
                     break
                 else:
@@ -580,8 +600,10 @@ class mywindow(QMainWindow,Ui_Client):
                         self.Light.setText("Left:"+Massage[1]+'V'+' '+"Right:"+Massage[2]+'V')
                     elif cmd. CMD_POWER in Massage:
                         percent_power=int((float(Massage[1])-7)/1.40*100)
-                        self.progress_Power.setValue(percent_power) 
-    def is_valid_jpg(self,jpg_file):
+                        self.progress_Power.setValue(percent_power)
+
+
+    def is_valid_jpg(self, jpg_file):
         try:
             bValid = True
             if jpg_file.split('.')[-1].lower() == 'jpg':  
@@ -608,6 +630,8 @@ class mywindow(QMainWindow,Ui_Client):
             self.Btn_Tracking_Faces.setText("Tracing-Off")
         else:
             self.Btn_Tracking_Faces.setText("Tracing-On")
+
+
     def find_Face(self,face_x,face_y):
         if face_x!=0 and face_y!=0:
             offset_x=float(face_x/400-0.5)*2
@@ -621,15 +645,54 @@ class mywindow(QMainWindow,Ui_Client):
             else:
                 self.HSlider_Servo1.setValue(self.servo1)
                 self.VSlider_Servo2.setValue(self.servo2)
+
+
     def time(self):
         self.TCP.video_Flag=False
         if  self.is_valid_jpg('video.jpg'):
-            self.label_Video.setPixmap(QtGui.QPixmap(QtCore.QString.fromUtf8('video.jpg')))
+            frame = cv2.imread('video.jpg')
+            if frame is not None:
+                self.video_frames.append(frame)
+
+            # project image to the GUI
+            self.label_Video.setPixmap(QtGui.QPixmap('video.jpg'))
             if self.Btn_Tracking_Faces.text()=="Tracing-Off":
                     self.find_Face(self.TCP.face_x,self.TCP.face_y)
         self.TCP.video_Flag=True
+
+
+    def save_to_video(self, filename):
+        '''
+        Save video stream to file
+        '''
+        if len(self.video_frames):
+            # write video to a new file
+            count = 0
+            f_filename = "%s_%s.mp4"%(filename.split(".mp4")[0], str(count))
+            while os.path.exists(f_filename):
+                count += 1
+                f_filename = "%s_%s.mp4"%(filename.split(".mp4")[0], str(count))
+
+            # write video
+            height, width, layers=self.video_frames[0].shape
+            video = cv2.VideoWriter(f_filename, 
+                                    VideoWriter_fourcc(*'MP4V'),
+                                    15, (width, height))
+            for img in self.video_frames:
+                video.write(img)
+            print("Save video to %s"%f_filename)
+
+            # reset video frames
+            self.video_frames = []
+            cv2.destroyAllWindows()
+            video.release()
+            
             
 if __name__ == '__main__':
+    # for saving data
+    if not os.path.exists("../../data/"):
+        os.makedirs("../../data")
+
     app = QApplication(sys.argv)
     myshow=mywindow()
     myshow.show();   

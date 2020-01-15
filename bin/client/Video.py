@@ -17,9 +17,11 @@ class VideoStreaming:
         self.connect_Flag=False
         self.face_x=0
         self.face_y=0
+
     def StartTcpClient(self,IP):
         self.client_socket1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     def StopTcpcClient(self):
         try:
             self.client_socket.shutdown(2)
@@ -41,7 +43,7 @@ class VideoStreaming:
                 bValid = False
         return bValid
 
-    def face_detect(self,img):
+    def face_detect(self, img):
         # darwin - mac system; win - windows system
         if sys.platform.startswith('darwin') or\
             sys.platform.startswith('win'):
@@ -51,51 +53,63 @@ class VideoStreaming:
                 for (x,y,w,h) in faces:
                     self.face_x=float(x+w/2.0)
                     self.face_y=float(y+h/2.0)
-                    img = cv2.circle(img, (x+w/2,y+h/2), (w+h)/4, (0, 255, 0), 2)
+                    img = cv2.circle(img, (int(x+w/2), int(y+h/2)),
+                                     int((w+h)/4), (0, 255, 0), 2)
             else:
                 self.face_x=0
                 self.face_y=0
         cv2.imwrite('video.jpg', img)
+
         
-    def streaming(self,ip):
+    def streaming(self, ip):
         stream_bytes = b' '
         try:
             self.client_socket.connect((ip, 8000))
             self.connection = self.client_socket.makefile('rb')
         except:
-            #print "command port connect failed"
+            print("command port connect failed")
             pass
+
         while True:
             try:
-                stream_bytes= self.connection.read(4) 
-                leng=struct.unpack('L', stream_bytes[:4])
-                jpg=self.connection.read(leng[0])
+                # determine the length of the image file
+                stream_bytes= self.connection.read(8)
+                # seems that the original "L", unsigned long, is 8 bytes here 
+                # but 4 bytes on raspberry pi.
+                # using 'q', longlong, just to be 8 bytes on both computers
+                # https://docs.python.org/2/library/struct.html#struct-alignment
+                leng = int(struct.unpack('q', stream_bytes[:8])[0])
+                jpg = self.connection.read(leng)
                 if self.IsValidImage4Bytes(jpg):
-                            image = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+                            image = cv2.imdecode(np.frombuffer(jpg, 
+                                                               dtype=np.uint8),
+                                                 cv2.IMREAD_COLOR)
                             if self.video_Flag:
                                 self.face_detect(image)
                                 self.video_Flag=False
-            except:
+            except Exception as e:
+                print('Error type is:', e.__class__.__name__)
+                print(e)
                 break
                   
-    def sendData(self,s):
+    def sendData(self, s):
         if self.connect_Flag:
-            self.client_socket1.send(s)
+            self.client_socket1.send(s.encode())
 
     def recvData(self):
         data=""
         try:
-            data=self.client_socket1.recv(1024)
+            data=self.client_socket1.recv(1024).decode()
         except:
             pass
         return data
 
-    def socket1_connect(self,ip):
+    def socket1_connect(self, ip):
         try:
             self.client_socket1.connect((ip, 5000))
             self.connect_Flag=True
             print("Connecttion Successful !")
-        except Exception, e:
+        except Exception as e:
             print("Connect to server Faild!: Server IP is right? Server is opend?")
             self.connect_Flag=False
 
