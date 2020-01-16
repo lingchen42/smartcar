@@ -22,38 +22,23 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtWidgets.QApplication.translate(context, text, disambig)
 
+# grey appearance
+GENERAL_COLOR = (72, 72, 72)
+
 class Ui_Client(object):
     def setupUi(self, Client):
         Client.setObjectName(_fromUtf8("Client"))
-        Client.resize(760, 610)
+        Client.resize(800, 800)
+
         palette = QtGui.QPalette()
-        brush = QtGui.QBrush(QtGui.QColor(72, 72, 72))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Button, brush)
-        brush = QtGui.QBrush(QtGui.QColor(72, 72, 72))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Base, brush)
-        brush = QtGui.QBrush(QtGui.QColor(72, 72, 72))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Window, brush)
-        brush = QtGui.QBrush(QtGui.QColor(72, 72, 72))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Button, brush)
-        brush = QtGui.QBrush(QtGui.QColor(72, 72, 72))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Base, brush)
-        brush = QtGui.QBrush(QtGui.QColor(72, 72, 72))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Window, brush)
-        brush = QtGui.QBrush(QtGui.QColor(72, 72, 72))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Button, brush)
-        brush = QtGui.QBrush(QtGui.QColor(72, 72, 72))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Base, brush)
-        brush = QtGui.QBrush(QtGui.QColor(72, 72, 72))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Window, brush)
+        for i in [QtGui.QPalette.Active, QtGui.QPalette.Inactive,
+                  QtGui.QPalette.Disabled]:
+            for j in [QtGui.QPalette.Button, QtGui.QPalette.Base,
+                      QtGui.QPalette.Window]:
+                      brush = QtGui.QBrush(QtGui.QColor(*GENERAL_COLOR))
+                      brush.setStyle(QtCore.Qt.SolidPattern)
+                      palette.setBrush(i, j, brush)
+
         Client.setPalette(palette)
         font = QtGui.QFont()
         font.setFamily(_fromUtf8("3ds"))
@@ -565,9 +550,9 @@ class Ui_Client(object):
         QtCore.QMetaObject.connectSlotsByName(Client)
 
     def retranslateUi(self, Client):
-        Client.setWindowTitle(_translate("Client", "freenove", None))
+        Client.setWindowTitle(_translate("Client", "Linda", None))
         self.Btn_ForWard.setText(_translate("Client", "ForWard", None))
-        self.name.setText(_translate("Client", "Freenove", None))
+        self.name.setText(_translate("Client", "Linda", None))
         self.Btn_Turn_Left.setText(_translate("Client", "Turn Left", None))
         self.Btn_BackWard.setText(_translate("Client", "BackWard", None))
         self.Btn_Turn_Right.setText(_translate("Client", "Turn Right", None))
