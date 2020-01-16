@@ -13,10 +13,11 @@ from Command import COMMAND as cmd
 class VideoStreaming:
     def __init__(self):
         self.face_cascade = cv2.CascadeClassifier(r'haarcascade_frontalface_default.xml')
-        self.video_Flag=True
-        self.connect_Flag=False
-        self.face_x=0
-        self.face_y=0
+        self.video_Flag = True
+        self.connect_Flag = False
+        self.face_detect_Flag = False
+        self.face_x = 0
+        self.face_y = 0
 
     def StartTcpClient(self,IP):
         self.client_socket1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -47,18 +48,19 @@ class VideoStreaming:
         # darwin - mac system; win - windows system
         if sys.platform.startswith('darwin') or\
             sys.platform.startswith('win'):
-            gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            faces = self.face_cascade.detectMultiScale(gray,1.3,5)
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            faces = self.face_cascade.detectMultiScale(gray, 1.3, 5)
             if len(faces)>0 :
-                for (x,y,w,h) in faces:
+                for (x, y, w, h) in faces:
                     self.face_x=float(x+w/2.0)
                     self.face_y=float(y+h/2.0)
                     img = cv2.circle(img, (int(x+w/2), int(y+h/2)),
                                      int((w+h)/4), (0, 255, 0), 2)
             else:
-                self.face_x=0
-                self.face_y=0
+                self.face_x = 0
+                self.face_y = 0
         cv2.imwrite('video.jpg', img)
+        return img
 
         
     def streaming(self, ip):
@@ -79,13 +81,17 @@ class VideoStreaming:
                 # using 'q', longlong, just to be 8 bytes on both computers
                 # https://docs.python.org/2/library/struct.html#struct-alignment
                 leng = int(struct.unpack('q', stream_bytes[:8])[0])
+                #print(leng)
                 jpg = self.connection.read(leng)
                 if self.IsValidImage4Bytes(jpg):
-                            image = cv2.imdecode(np.frombuffer(jpg, 
+                            img = cv2.imdecode(np.frombuffer(jpg, 
                                                                dtype=np.uint8),
                                                  cv2.IMREAD_COLOR)
                             if self.video_Flag:
-                                self.face_detect(image)
+                                if self.face_detect_Flag:
+                                    self.face_detect(img)
+                                else:
+                                    cv2.imwrite('video.jpg', img)
                                 self.video_Flag=False
             except Exception as e:
                 print('Error type is:', e.__class__.__name__)

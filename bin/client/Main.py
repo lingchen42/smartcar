@@ -20,6 +20,7 @@ from PyQt5 import  QtGui, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import pyqtSignal
 from cv2 import VideoWriter_fourcc
+from matplotlib import colors
    
 class mywindow(QMainWindow, Ui_Client):
     def __init__(self):
@@ -78,6 +79,8 @@ class mywindow(QMainWindow, Ui_Client):
         self.VSlider_Servo2.setSingleStep(1)
         self.VSlider_Servo2.setValue(self.servo2)
         self.VSlider_Servo2.valueChanged.connect(self.Change_Up_Down)
+
+        self.Led_Named_Color.activated[str].connect(self.LedColorChange)
         
         self.checkBox_Led1.setChecked(False)
         self.checkBox_Led1.stateChanged.connect(lambda:self.LedChange(self.checkBox_Led1))
@@ -133,6 +136,7 @@ class mywindow(QMainWindow, Ui_Client):
         self.Btn_Recording.clicked.connect(self.on_btn_recording)
 
         self.recording_flag = False
+        self.framerate = 10
 
         self.Btn_Up.clicked.connect(self.on_btn_Up)
         self.Btn_Left.clicked.connect(self.on_btn_Left)
@@ -140,13 +144,11 @@ class mywindow(QMainWindow, Ui_Client):
         self.Btn_Home.clicked.connect(self.on_btn_Home)
         self.Btn_Right.clicked.connect(self.on_btn_Right)
         self.Btn_Tracking_Faces.clicked.connect(self.Tracking_Face)
-        
 
         self.Btn_Buzzer.pressed.connect(self.on_btn_Buzzer)
         self.Btn_Buzzer.released.connect(self.on_btn_Buzzer)
         
         self.Btn_Connect.clicked.connect(self.on_btn_Connect)
-        
         
         self.Window_Min.clicked.connect(self.windowMinimumed)
         self.Window_Close.clicked.connect(self.close)
@@ -304,8 +306,6 @@ class mywindow(QMainWindow, Ui_Client):
                 self.on_btn_Buzzer()
                 self.Key_Space=False
         
-
-        
     def on_btn_ForWard(self):
         ForWard=self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.intervalChar+str(-1500)+self.endChar
         self.TCP.sendData(cmd.CMD_MOTOR+ForWard)
@@ -328,7 +328,7 @@ class mywindow(QMainWindow, Ui_Client):
 
     def on_btn_video(self):
         if self.Btn_Video.text()=='Open Video':
-            timer.start(34)
+            timer.start(1000//self.framerate)
             self.Btn_Video.setText('Close Video')
         elif self.Btn_Video.text()=='Close Video':
             timer.stop()
@@ -336,13 +336,11 @@ class mywindow(QMainWindow, Ui_Client):
 
     def on_btn_recording(self):
         if self.Btn_Recording.text()=='Start Recording':
-            #timer.start(34)
             self.Btn_Recording.setText('End Recording')
             self.recording_flag = True
             self.video_frames = []
             print("recording button pushed, recording flag is ", self.recording_flag)
         elif self.Btn_Recording.text()=='End Recording':
-            #timer.stop()
             self.recording_flag = False
             self.save_to_video('../../data/video.mp4')
             self.Btn_Recording.setText('Start Recording')
@@ -399,7 +397,6 @@ class mywindow(QMainWindow, Ui_Client):
             self.TCP.sendData(cmd.CMD_LIGHT+self.intervalChar+'0'+self.endChar)
             self.Light.setText("Light")
 
-        
     def Change_Left_Right(self):#Left or Right
         self.servo1=self.HSlider_Servo1.value()
         self.TCP.sendData(cmd.CMD_SERVO+self.intervalChar+'0'+self.intervalChar+str(self.servo1)+self.endChar)
@@ -422,8 +419,14 @@ class mywindow(QMainWindow, Ui_Client):
 
     def windowMinimumed(self):
         self.showMinimized()
+
+    def LedColorChange(self, text):
+        r, g, b = colors.to_rgb(text)
+        self.Color_R.setText(str(int(r*255)))
+        self.Color_G.setText(str(int(g*255)))
+        self.Color_B.setText(str(int(b*255)))
         
-    def LedChange(self,b):
+    def LedChange(self, b):
         R=self.Color_R.text()
         G=self.Color_G.text()
         B=self.Color_B.text()
@@ -515,7 +518,7 @@ class mywindow(QMainWindow, Ui_Client):
     def on_btn_Mode(self,Mode):
         if Mode.text() == "M-Free":
             if Mode.isChecked() == True:
-                timer.start(34)
+                timer.start(1000//self.framerate)  # 1000ms / framerate
                 self.TCP.sendData(cmd.CMD_MODE+self.intervalChar+'one'+self.endChar)
                 
         if Mode.text() == "M-Light":
@@ -634,14 +637,17 @@ class mywindow(QMainWindow, Ui_Client):
                             bValid = False               
             else:  
                 return bValid
-        except:
-            pass
+        except Exception as e:
+            #print("is_valid_jpg error: ", e)
+            bValid = False
         return bValid
 
     def Tracking_Face(self):
         if self.Btn_Tracking_Faces.text()=="Tracing-On":
+            self.TCP.face_detect_Flag = True
             self.Btn_Tracking_Faces.setText("Tracing-Off")
         else:
+            self.TCP.face_detect_Flag = False
             self.Btn_Tracking_Faces.setText("Tracing-On")
 
 
@@ -663,15 +669,16 @@ class mywindow(QMainWindow, Ui_Client):
     def time(self):
         self.TCP.video_Flag=False
         if  self.is_valid_jpg('video.jpg'):
-            frame = cv2.imread('video.jpg')
-            # project image to the GUI
+            # # project image to the GUI
             self.label_Video.setPixmap(QtGui.QPixmap('video.jpg'))
             if self.Btn_Tracking_Faces.text()=="Tracing-Off":
-                    self.find_Face(self.TCP.face_x,self.TCP.face_y)
+                    self.find_Face(self.TCP.face_x, self.TCP.face_y)
 
             # save video
-            if (frame is not None) and self.recording_flag:
-                self.video_frames.append(frame)
+            if self.recording_flag:
+                frame = cv2.imread('video.jpg')
+                if frame is not None:
+                    self.video_frames.append(frame)
 
         self.TCP.video_Flag=True
 
@@ -692,7 +699,7 @@ class mywindow(QMainWindow, Ui_Client):
             height, width, layers=self.video_frames[0].shape
             video = cv2.VideoWriter(f_filename, 
                                     VideoWriter_fourcc(*'mp4v'),
-                                    30, (width, height))
+                                    self.framerate, (width, height))
             for img in self.video_frames:
                 video.write(img)
             print("Save video to %s"%f_filename)
