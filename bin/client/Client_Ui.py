@@ -215,6 +215,7 @@ class Ui_Client(object):
         self.Btn_Turn_Right.setFont(font)
         self.Btn_Turn_Right.setStyleSheet(_fromUtf8(""))
         self.Btn_Turn_Right.setObjectName(_fromUtf8("Btn_Turn_Right"))
+
         self.Btn_Video = QtWidgets.QPushButton(Client)
         self.Btn_Video.setGeometry(QtCore.QRect(240, 380, 90, 30))
         font = QtGui.QFont()
@@ -227,6 +228,16 @@ class Ui_Client(object):
         self.label_Video.setGeometry(QtCore.QRect(1, 42, 400, 300))
         self.label_Video.setText(_fromUtf8(""))
         self.label_Video.setObjectName(_fromUtf8("label_Video"))
+
+        self.Btn_Recording = QtWidgets.QPushButton(Client)
+        self.Btn_Recording.setGeometry(QtCore.QRect(240, 410, 90, 30))
+        font = QtGui.QFont()
+        font.setFamily(_fromUtf8("3ds"))
+        font.setPointSize(10)
+        self.Btn_Recording.setFont(font)
+        self.Btn_Recording.setStyleSheet(_fromUtf8(""))
+        self.Btn_Recording.setObjectName(_fromUtf8("Btn_Recording"))
+
         self.Btn_Down = QtWidgets.QPushButton(Client)
         self.Btn_Down.setGeometry(QtCore.QRect(510, 480, 75, 30))
         font = QtGui.QFont()
@@ -235,6 +246,7 @@ class Ui_Client(object):
         self.Btn_Down.setFont(font)
         self.Btn_Down.setStyleSheet(_fromUtf8(""))
         self.Btn_Down.setObjectName(_fromUtf8("Btn_Down"))
+
         self.Btn_Left = QtWidgets.QPushButton(Client)
         self.Btn_Left.setGeometry(QtCore.QRect(440, 450, 75, 30))
         font = QtGui.QFont()
@@ -243,6 +255,7 @@ class Ui_Client(object):
         self.Btn_Left.setFont(font)
         self.Btn_Left.setStyleSheet(_fromUtf8(""))
         self.Btn_Left.setObjectName(_fromUtf8("Btn_Left"))
+
         self.Btn_Home = QtWidgets.QPushButton(Client)
         self.Btn_Home.setGeometry(QtCore.QRect(510, 450, 75, 30))
         font = QtGui.QFont()
@@ -251,6 +264,7 @@ class Ui_Client(object):
         self.Btn_Home.setFont(font)
         self.Btn_Home.setStyleSheet(_fromUtf8(""))
         self.Btn_Home.setObjectName(_fromUtf8("Btn_Home"))
+
         self.Btn_Up = QtWidgets.QPushButton(Client)
         self.Btn_Up.setGeometry(QtCore.QRect(510, 420, 75, 30))
         font = QtGui.QFont()
@@ -259,6 +273,7 @@ class Ui_Client(object):
         self.Btn_Up.setFont(font)
         self.Btn_Up.setStyleSheet(_fromUtf8(""))
         self.Btn_Up.setObjectName(_fromUtf8("Btn_Up"))
+
         self.Btn_Right = QtWidgets.QPushButton(Client)
         self.Btn_Right.setGeometry(QtCore.QRect(580, 450, 75, 30))
         font = QtGui.QFont()
@@ -267,9 +282,11 @@ class Ui_Client(object):
         self.Btn_Right.setFont(font)
         self.Btn_Right.setStyleSheet(_fromUtf8(""))
         self.Btn_Right.setObjectName(_fromUtf8("Btn_Right"))
+
         self.Window_Close = QtWidgets.QPushButton(Client)
         self.Window_Close.setGeometry(QtCore.QRect(710, 1, 50, 40))
         self.Window_Close.setObjectName(_fromUtf8("Window_Close"))
+
         self.IP = QtWidgets.QLineEdit(Client)
         self.IP.setGeometry(QtCore.QRect(10, 380, 101, 30))
         font = QtGui.QFont()
@@ -278,6 +295,7 @@ class Ui_Client(object):
         self.IP.setFont(font)
         self.IP.setStyleSheet(_fromUtf8(""))
         self.IP.setObjectName(_fromUtf8("IP"))
+
         self.Btn_Connect = QtWidgets.QPushButton(Client)
         self.Btn_Connect.setGeometry(QtCore.QRect(120, 380, 90, 30))
         font = QtGui.QFont()
@@ -554,6 +572,7 @@ class Ui_Client(object):
         self.Btn_BackWard.setText(_translate("Client", "BackWard", None))
         self.Btn_Turn_Right.setText(_translate("Client", "Turn Right", None))
         self.Btn_Video.setText(_translate("Client", "Open Video", None))
+        self.Btn_Recording.setText(_translate("Client", "Start Recording", None))
         self.Btn_Tracking_Faces.setText(_translate("Client", "Tracing-On", None))
 
         self.Btn_Down.setText(_translate("Client", "Down", None))

@@ -130,8 +130,9 @@ class mywindow(QMainWindow, Ui_Client):
         self.Btn_Turn_Right.released.connect(self.on_btn_Stop)
 
         self.Btn_Video.clicked.connect(self.on_btn_video)
-        # for creating video
-        self.video_frames = []
+        self.Btn_Recording.clicked.connect(self.on_btn_recording)
+
+        self.recording_flag = False
 
         self.Btn_Up.clicked.connect(self.on_btn_Up)
         self.Btn_Left.clicked.connect(self.on_btn_Left)
@@ -331,8 +332,20 @@ class mywindow(QMainWindow, Ui_Client):
             self.Btn_Video.setText('Close Video')
         elif self.Btn_Video.text()=='Close Video':
             timer.stop()
-            self.save_to_video('../../data/video.mp4')
             self.Btn_Video.setText('Open Video')
+
+    def on_btn_recording(self):
+        if self.Btn_Recording.text()=='Start Recording':
+            #timer.start(34)
+            self.Btn_Recording.setText('End Recording')
+            self.recording_flag = True
+            self.video_frames = []
+            print("recording button pushed, recording flag is ", self.recording_flag)
+        elif self.Btn_Recording.text()=='End Recording':
+            #timer.stop()
+            self.recording_flag = False
+            self.save_to_video('../../data/video.mp4')
+            self.Btn_Recording.setText('Start Recording')
         
     def on_btn_Left(self):
         self.servo1=self.servo1+10
@@ -651,13 +664,15 @@ class mywindow(QMainWindow, Ui_Client):
         self.TCP.video_Flag=False
         if  self.is_valid_jpg('video.jpg'):
             frame = cv2.imread('video.jpg')
-            if frame is not None:
-                self.video_frames.append(frame)
-
             # project image to the GUI
             self.label_Video.setPixmap(QtGui.QPixmap('video.jpg'))
             if self.Btn_Tracking_Faces.text()=="Tracing-Off":
                     self.find_Face(self.TCP.face_x,self.TCP.face_y)
+
+            # save video
+            if (frame is not None) and self.recording_flag:
+                self.video_frames.append(frame)
+
         self.TCP.video_Flag=True
 
 
@@ -676,8 +691,8 @@ class mywindow(QMainWindow, Ui_Client):
             # write video
             height, width, layers=self.video_frames[0].shape
             video = cv2.VideoWriter(f_filename, 
-                                    VideoWriter_fourcc(*'MP4V'),
-                                    15, (width, height))
+                                    VideoWriter_fourcc(*'mp4v'),
+                                    30, (width, height))
             for img in self.video_frames:
                 video.write(img)
             print("Save video to %s"%f_filename)
